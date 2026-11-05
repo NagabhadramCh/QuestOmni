@@ -13,27 +13,27 @@ Live site: <https://nagabhadramch.github.io/QuestOmni/>
 
 The token is read once and removed from the address bar right away. It works once, for 5 minutes.
 
-## Settings (src/config.js)
+## Settings
 
-| Setting | Value |
+| Setting | Where |
 |---|---|
-| Endpoint | `https://agents.kore.ai` |
-| Project | `01a1ab58-3e51-7b07-a103-84ebb7bc80a1` |
-| Web SDK channel (OmniWebSDK) | `01a1abed-037d-78e4-8ea0-4174cf59ef2a` |
-| Public key | `VITE_AGENT_PUBLIC_API_KEY` (env only, never committed) |
+| Endpoint, project, Web SDK channel | `src/config.js` |
+| Public key `VITE_AGENT_PUBLIC_API_KEY` | `.env` (public key only, origin-restricted; never put the channel secret here) |
+
+## Deploy (GitHub Pages, no Actions)
+
+The built site is committed in `docs/`.
+
+1. `npm install` (first time)
+2. `npm run build` (writes `docs/`)
+3. Commit and push `docs/` with your changes.
+4. GitHub repository **Settings > Pages > Deploy from a branch > Branch: main, Folder: /docs**.
 
 ## Run locally
 
 ```bash
 npm install
-cp .env.example .env.local   # then paste the full pk_abbf7afb... key
 npm run dev
 ```
 
-Note: the SDK key only allows the origin `https://nagabhadramch.github.io`, so a local run at `localhost` is refused unless you add `http://localhost:5173` to the key's allowed origins in Studio.
-
-## Deploy (GitHub Pages)
-
-1. Repository **Settings > Pages > Build and deployment > Source: GitHub Actions**.
-2. Repository **Settings > Secrets and variables > Actions > New repository secret**: `VITE_AGENT_PUBLIC_API_KEY` = the full public key.
-3. Push to `main` (or run the workflow by hand). The workflow `.github/workflows/pages.yml` builds and publishes `dist`.
+The public key only allows `https://nagabhadramch.github.io`; for `localhost` add `http://localhost:5173` to the key's allowed origins in Studio.

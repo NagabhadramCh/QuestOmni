@@ -3,8 +3,7 @@ export const SDK_CONFIG = {
   endpoint: "https://agents.kore.ai",
   projectId: "01a1ab58-3e51-7b07-a103-84ebb7bc80a1",
   channelId: "01a1abed-037d-78e4-8ea0-4174cf59ef2a",
-  // Public key (starts with pk_abbf7afb). Set it in .env.local for local runs and as the repository secret
-  // VITE_AGENT_PUBLIC_API_KEY for the GitHub Pages build. Never commit it.
+  // Public key (starts with pk_abbf7afb) from .env, built into docs/. Public by design and origin-restricted.
   apiKey: import.meta.env.VITE_AGENT_PUBLIC_API_KEY,
 };
 
