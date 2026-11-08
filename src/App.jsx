@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AgentProvider } from "@koreai/artemis-web-sdk/react";
-import { QUEST_THEME, SDK_CONFIG, readTextedLink } from "./config.js";
+import { QUEST_THEME, SDK_CONFIG, readTextedLink, resolveLinkCode } from "./config.js";
 import ChatWindow from "./components/ChatWindow.jsx";
 import AvatarBubble from "./components/AvatarBubble.jsx";
 
@@ -13,7 +13,7 @@ export default function App() {
     <div className="shell">
       <div className="brandbar" aria-hidden="true" />
       <SiteHeader />
-      {LINK.token ? <LinkedChat token={LINK.token} /> : <SiteChat />}
+      {LINK.code ? <ShortLink code={LINK.code} /> : LINK.token ? <LinkedChat token={LINK.token} /> : <SiteChat />}
       <SiteFooter />
     </div>
   );
@@ -39,6 +39,35 @@ function SiteFooter() {
         <span>Secure form · Powered by Pronix.ai</span>
       </div>
     </footer>
+  );
+}
+
+// Short texted link (?c=<record>.<key>): look up the single-use token, then open the same secure chat.
+function ShortLink({ code }) {
+  const [state, setState] = useState({ status: "loading", token: "" });
+  useEffect(() => {
+    let alive = true;
+    resolveLinkCode(code).then((token) => { if (alive) setState({ status: token ? "ready" : "closed", token }); });
+    return () => { alive = false; };
+  }, [code]);
+  if (state.status === "ready") return <LinkedChat token={state.token} />;
+  return (
+    <main className="wrap page">
+      <section className="intro">
+        <p className="eyebrow">Test results</p>
+        <h1>Secure patient form</h1>
+      </section>
+      <section className="chat-window chat-window--inline chat-window--status" aria-live="polite">
+        <header className="chat-header">
+          <span className="chat-header__title"><span className="chat-header__dot" aria-hidden="true" />Quest Diagnostics · Secure chat</span>
+        </header>
+        <div className="chat-body">
+          {state.status === "loading"
+            ? <p className="sdk-status" role="status">Opening your secure form…</p>
+            : <p className="sdk-status error" role="status">This link has expired or was already used. Please ask for a new one on your call.</p>}
+        </div>
+      </section>
+    </main>
   );
 }
 

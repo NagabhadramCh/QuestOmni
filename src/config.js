@@ -34,14 +34,37 @@ export const QUEST_THEME = {
   baseFontSize: 15,
 };
 
-// The voice bot texts links like  .../QuestOmni/#f=account&bt=<single-use verified token>.
-// Read them once and remove them from the address bar and history right away.
+// Link store the voice bot writes to (mock stand-in for Quest's own link service).
+export const LINK_STORE = "https://6aca73ee3115bcc95820d8c6.mockapi.io/deliveries";
+
+// The voice bot texts a short link  .../QuestOmni/?c=<record>.<one-time key>  (v5.3.1). Older links carried the token
+// itself in the fragment (#f=patient&bt=<token>); both are read once and removed from the address bar right away.
 export function readTextedLink() {
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const query = new URLSearchParams(window.location.search);
   const token = hash.get("bt") || "";
-  const fields = hash.get("f") === "patient" ? "patient" : "account";
-  if (window.location.hash) {
+  const code = /^\d{1,9}\.[0-9a-z]{8,40}$/i.test(query.get("c") || "") ? query.get("c") : "";
+  if (window.location.hash || window.location.search) {
     try { window.history.replaceState(null, "", window.location.pathname); } catch { /* ignore */ }
   }
-  return { token, fields };
+  return { token, code };
+}
+
+// Short code -> the single-use bootstrap token saved on the link record. The token is only returned while the record
+// is open (sent/pending, not expired) and the one-time key matches; it is retried briefly in case the SMS beat the save.
+export async function resolveLinkCode(code) {
+  const [ref, key] = code.split(".");
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const res = await fetch(`${LINK_STORE}/${encodeURIComponent(ref)}`, { cache: "no-store" });
+      if (res.ok) {
+        const rec = await res.json();
+        const open = (rec.status === "sent" || rec.status === "pending") && (!rec.expiresAt || Date.now() < Date.parse(rec.expiresAt));
+        if (rec.kind === "text_link" && rec.token === key && open && rec.bt) return rec.bt;
+        if (rec.kind === "text_link" && rec.token === key && !open) return "";
+      }
+    } catch { /* retry */ }
+    await new Promise((r) => setTimeout(r, 1500));
+  }
+  return "";
 }
