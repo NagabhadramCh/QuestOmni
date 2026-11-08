@@ -9,7 +9,10 @@ export default function ChatWindow({ title, variant, onClose, expiredText }) {
   return (
     <section className={`chat-window chat-window--${variant}`} aria-label={title}>
       <header className="chat-header">
-        <span>{title}</span>
+        <span className="chat-header__title">
+          <span className="chat-header__dot" aria-hidden="true" />
+          {title}
+        </span>
         {onClose && (
           <button type="button" onClick={onClose} aria-label="Close chat">×</button>
         )}
