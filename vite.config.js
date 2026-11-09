@@ -3,8 +3,9 @@ import react from "@vitejs/plugin-react";
 
 // GitHub Pages ("Deploy from a branch": main, folder /docs) serves this repo at
 // https://nagabhadramch.github.io/QuestOmni/ . `npm run build` writes the site into docs/, which is committed.
+// Render (static site) builds the same repo at its domain root with BASE_PATH=/ set in the Render environment.
 export default defineConfig({
-  base: "/QuestOmni/",
+  base: process.env.BASE_PATH || "/QuestOmni/",
   plugins: [react()],
   build: {
     outDir: "docs",
