@@ -43,9 +43,15 @@ export function readTextedLink() {
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
   const query = new URLSearchParams(window.location.search);
   const token = hash.get("bt") || "";
-  const code = /^\d{1,9}\.[0-9a-z]{8,40}$/i.test(query.get("c") || "") ? query.get("c") : "";
-  if (window.location.hash || window.location.search) {
-    try { window.history.replaceState(null, "", window.location.pathname); } catch { /* ignore */ }
+  // The code arrives as ?c=... (older links) or in the path, /s=0&c=... (current links: US carriers filter the "?" form).
+  let path = "";
+  try { path = decodeURIComponent(window.location.pathname); } catch { path = window.location.pathname; }
+  const inPath = path.match(/(?:^|[/&])c=(\d{1,9}\.[0-9a-z]{8,40})(?:$|[&/])/i);
+  const rawCode = query.get("c") || hash.get("c") || (inPath ? inPath[1] : "");
+  const code = /^\d{1,9}\.[0-9a-z]{8,40}$/i.test(rawCode) ? rawCode : "";
+  if (window.location.hash || window.location.search || inPath) {
+    const cleanPath = inPath ? import.meta.env.BASE_URL : window.location.pathname;
+    try { window.history.replaceState(null, "", cleanPath); } catch { /* ignore */ }
   }
   return { token, code };
 }
