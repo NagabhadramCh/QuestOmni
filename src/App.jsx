@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { AgentProvider } from "@koreai/artemis-web-sdk/react";
-import { QUEST_THEME, SDK_CONFIG, readTextedLink, resolveLinkCode } from "./config.js";
+import { QUEST_THEME, SDK_CONFIG, readTextedLink, resolveLinkCode, readContinuityLink } from "./config.js";
+import ContinuePage from "./components/ContinuePage.jsx";
 import ChatWindow from "./components/ChatWindow.jsx";
 import AvatarBubble from "./components/AvatarBubble.jsx";
 
 // Read once at load: the texted link's token is single-use.
-const LINK = readTextedLink();
+// Continuity code first: readTextedLink() clears the query string.
+const CONTINUITY_CODE = readContinuityLink();
+const LINK = CONTINUITY_CODE ? { code: "", token: "" } : readTextedLink();
 const LOGO = `${import.meta.env.BASE_URL}quest-logo.png`;
 
 export default function App() {
@@ -13,7 +16,7 @@ export default function App() {
     <div className="shell">
       <div className="brandbar" aria-hidden="true" />
       <SiteHeader />
-      {LINK.code ? <ShortLink code={LINK.code} /> : LINK.token ? <LinkedChat token={LINK.token} /> : <SiteChat />}
+      {CONTINUITY_CODE ? <ContinuePage code={CONTINUITY_CODE} /> : LINK.code ? <ShortLink code={LINK.code} /> : LINK.token ? <LinkedChat token={LINK.token} /> : <SiteChat />}
       <SiteFooter />
     </div>
   );

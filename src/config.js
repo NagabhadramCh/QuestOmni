@@ -8,6 +8,21 @@ export const SDK_CONFIG = {
 };
 
 // Quest Diagnostics palette (Provider Services): deep green, lime accent, warm grey-green surfaces.
+// OmniWhatsapp continuity page (?invitation=&code=): the OmniWhatsapp project public key (chat only, origin-restricted).
+export const CONTINUITY_CONFIG = {
+  endpoint: "https://agents.kore.ai",
+  projectId: "01a1c0af-7353-7aab-b32f-8a8f746a8d73",
+  channelId: import.meta.env.VITE_CONTINUITY_CHANNEL_ID,
+  apiKey: import.meta.env.VITE_CONTINUITY_PUBLIC_API_KEY,
+};
+
+// Artemis continuity link (offer_continuity): ?invitation=<id>&code=<one-time code>.
+export function readContinuityLink() {
+  const q = new URLSearchParams(window.location.search);
+  const code = (q.get("code") || "").trim();
+  return q.get("invitation") && /^[A-Za-z0-9_-]{16,128}$/.test(code) ? code : "";
+}
+
 export const QUEST_THEME = {
   assistantName: "Quest Diagnostics",
   primaryColor: "#4A7637",

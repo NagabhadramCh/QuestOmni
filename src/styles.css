@@ -118,3 +118,6 @@ h1 {
 .qd-cal .flatpickr-day.selected, .qd-cal .flatpickr-day.selected:hover { background: var(--green); border-color: var(--green); color: #fff; }
 .qd-cal .flatpickr-day.flatpickr-disabled, .qd-cal .flatpickr-day.prevMonthDay, .qd-cal .flatpickr-day.nextMonthDay { color: #B7BFB2; }
 @media (max-width: 380px) { .flatpickr-calendar.qd-cal { width: 286px; } .qd-cal .flatpickr-innerContainer, .qd-cal .flatpickr-rContainer, .qd-cal .flatpickr-days, .qd-cal .dayContainer { width: 284px; min-width: 284px; max-width: 284px; } }
+
+/* Continuity page: the SDK widget mounts inside this box. */
+.continue-host { position: relative; min-height: min(70vh, 640px); background: var(--card); border: 1px solid var(--rule); border-radius: 16px; overflow: hidden; }
