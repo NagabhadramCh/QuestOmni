@@ -8,10 +8,13 @@ export const SDK_CONFIG = {
 };
 
 // Quest Diagnostics palette (Provider Services): deep green, lime accent, warm grey-green surfaces.
-// OmniWhatsapp continuity page (?invitation=&code=): the OmniWhatsapp project public key (chat only, origin-restricted).
+// OmniWhatsapp continuity page (?invitation=&code=). Artemis needs a verified visitor to join a live call, so the page
+// gets a single-use bootstrap token for the hosted_exchange channel OmniContinuityHosted from our token server
+// (server/token-server.mjs, VITE_CONTINUITY_TOKEN_URL). The anonymous public key is only a fallback when no token URL is set.
 export const CONTINUITY_CONFIG = {
   endpoint: "https://agents.kore.ai",
   projectId: "01a1c0af-7353-7aab-b32f-8a8f746a8d73",
+  tokenUrl: import.meta.env.VITE_CONTINUITY_TOKEN_URL,
   channelId: import.meta.env.VITE_CONTINUITY_CHANNEL_ID,
   apiKey: import.meta.env.VITE_CONTINUITY_PUBLIC_API_KEY,
 };

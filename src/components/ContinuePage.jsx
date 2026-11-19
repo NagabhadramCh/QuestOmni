@@ -11,16 +11,28 @@ export default function ContinuePage({ code }) {
 
   useEffect(() => {
     if (!host.current) return undefined;
-    if (!CONTINUITY_CONFIG.apiKey) {
+    const { tokenUrl, apiKey, channelId } = CONTINUITY_CONFIG;
+    if (!tokenUrl && !apiKey) {
       setStatus({ kind: "error", text: "This page isn't set up yet. Please continue on your call." });
       return undefined;
     }
+    // Verified visitor: our token server mints a single-use hosted_exchange bootstrap token for this invitation.
+    const getBootstrapToken = async () => {
+      const r = await fetch(tokenUrl, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok || typeof body.bootstrapToken !== "string") throw new Error("We couldn't verify this link");
+      return body.bootstrapToken;
+    };
+    const auth = tokenUrl ? { bootstrapTokenProvider: getBootstrapToken } : { channelId, apiKey };
     const widget = AgentWidget.init(
       {
         endpoint: CONTINUITY_CONFIG.endpoint,
         projectId: CONTINUITY_CONFIG.projectId,
-        channelId: CONTINUITY_CONFIG.channelId,
-        apiKey: CONTINUITY_CONFIG.apiKey,
+        ...auth,
         mode: "chat",
         chatEnabled: true,
         voiceEnabled: false,
