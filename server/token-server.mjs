@@ -14,7 +14,6 @@
 //   ALLOWED_ORIGINS              comma list, default https://questomni.onrender.com
 //   PORT                         default 8787
 import http from 'node:http';
-import crypto from 'node:crypto';
 import fs from 'node:fs';
 
 const env = process.env;
@@ -67,9 +66,22 @@ function readJson(req) {
   });
 }
 
-async function mintBootstrapToken(code) {
-  // The visitor's identity is bound to the invitation they hold: a stable, non-reversible id per invitation code.
-  const verifiedUserId = `continuity-${crypto.createHash('sha256').update(code).digest('hex').slice(0, 40)}`;
+// Kore (ticket 80334): a continuity invitation belongs to the caller, so verifiedUserId must be the caller's phone in
+// +E.164, matching the number that placed the call. Accepts "+<cc><number>", 10-digit US, or 11-digit US starting with 1.
+function toE164(input) {
+  const raw = String(input || '').trim();
+  const digits = raw.replace(/\D/g, '');
+  let e164 = '';
+  if (raw.startsWith('+')) e164 = `+${digits}`;
+  else if (digits.length === 10) e164 = `+1${digits}`;
+  else if (digits.length === 11 && digits.startsWith('1')) e164 = `+${digits}`;
+  return /^\+[1-9]\d{7,14}$/.test(e164) ? e164 : '';
+}
+
+// TEST STAGE: the number is taken as typed (no OTP yet). The one-time link itself only reaches the caller's phone.
+// Production should verify the number with a one-time code before minting.
+async function mintBootstrapToken(phone) {
+  const verifiedUserId = phone;
   const r = await fetch(`${RUNTIME}/api/v1/sdk/customer-sessions`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-sdk-channel-secret': SECRET },
@@ -97,8 +109,10 @@ const server = http.createServer(async (req, res) => {
   const body = await readJson(req);
   const code = typeof body?.code === 'string' ? body.code : '';
   if (!CODE_RE.test(code)) return send(res, 400, { error: 'invalid_code' }, origin);
+  const phone = toE164(body?.phone);
+  if (!phone) return send(res, 400, { error: 'invalid_phone' }, origin);
   try {
-    const minted = await mintBootstrapToken(code);
+    const minted = await mintBootstrapToken(phone);
     if (!minted) return send(res, 502, { error: 'bootstrap_unavailable' }, origin);
     return send(res, 200, minted, origin);
   } catch (e) {

@@ -120,4 +120,13 @@ h1 {
 @media (max-width: 380px) { .flatpickr-calendar.qd-cal { width: 286px; } .qd-cal .flatpickr-innerContainer, .qd-cal .flatpickr-rContainer, .qd-cal .flatpickr-days, .qd-cal .dayContainer { width: 284px; min-width: 284px; max-width: 284px; } }
 
 /* Continuity page: the SDK widget mounts inside this box. */
+.phone-form { display: grid; gap: 8px; padding: 18px; background: var(--card); border: 1px solid var(--rule); border-radius: 16px; }
+.phone-form label { font-weight: 600; }
+.phone-form__row { display: flex; gap: 8px; flex-wrap: wrap; }
+.phone-form input { flex: 1 1 200px; min-width: 0; padding: 12px 14px; font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--rule); border-radius: 10px; }
+.phone-form input:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+.phone-form button { padding: 12px 20px; font-weight: 600; color: #fff; background: var(--green); border: 0; border-radius: 10px; cursor: pointer; }
+.phone-form button:hover { background: var(--green-dark); }
+.phone-form__hint { margin: 0; color: var(--muted); font-size: 13.5px; }
+.continue-host[hidden] { display: none; }
 .continue-host { position: relative; min-height: min(70vh, 640px); background: var(--card); border: 1px solid var(--rule); border-radius: 16px; overflow: hidden; }
