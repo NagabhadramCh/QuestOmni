@@ -9,6 +9,33 @@ import { CONTINUITY_CONFIG, QUEST_THEME } from "../config.js";
 // the hosted_exchange channel with verifiedUserId = the caller's phone in +E.164. So the page first asks for the number
 // the caller is calling from; our token server turns it into a single-use bootstrap token.
 // TEST STAGE: the number is not yet verified with a one-time code.
+// The SDK widget is a floating launcher panel (fixed 380x580 box, open/close buttons). On this page the chat is the
+// whole point, so it is laid out inside the page box: the host element is made static by styles.css
+// (.continue-host > agent-widget), and this style, added to the widget's open shadow root, fills the box and hides the
+// launcher and the close/minimise/maximise/resize controls. Re-added if the widget re-renders its shadow root.
+const INLINE_CHAT_CSS = `
+.panel-launcher, .launcher, .maximize-btn, .minimize-btn, .close-btn, .resize-handle, .resize-hit-area { display: none !important; }
+.widget-container, .widget-container.maximized, .widget-container.with-panel-launcher {
+  width: 100% !important; height: 100% !important; max-height: none !important; margin: 0 !important;
+  border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+}`;
+
+function keepInline(widget) {
+  const root = widget.shadowRoot;
+  if (!root) return () => {};
+  const ensure = () => {
+    if (root.querySelector("style[data-quest-inline]")) return;
+    const style = document.createElement("style");
+    style.setAttribute("data-quest-inline", "");
+    style.textContent = INLINE_CHAT_CSS;
+    root.appendChild(style);
+  };
+  ensure();
+  const observer = new MutationObserver(ensure);
+  observer.observe(root, { childList: true });
+  return () => observer.disconnect();
+}
+
 export default function ContinuePage({ code }) {
   const host = useRef(null);
   const { tokenUrl, apiKey, channelId } = CONTINUITY_CONFIG;
@@ -68,7 +95,9 @@ export default function ContinuePage({ code }) {
     widget.addEventListener("continuity-exchange", onJoined);
     widget.addEventListener("continuity-error", onError);
     if (typeof widget.open === "function") widget.open();
+    const stopInline = keepInline(widget);
     return () => {
+      stopInline();
       widget.removeEventListener("continuity-exchange", onJoined);
       widget.removeEventListener("continuity-error", onError);
       AgentWidget.destroy(widget);
