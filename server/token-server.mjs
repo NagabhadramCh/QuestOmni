@@ -85,7 +85,9 @@ async function mintBootstrapToken(phone) {
   const r = await fetch(`${RUNTIME}/api/v1/sdk/customer-sessions`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-sdk-channel-secret': SECRET },
-    body: JSON.stringify({ tenantId: TENANT_ID, projectId: PROJECT_ID, channelId: CHANNEL_ID, verifiedUserId }),
+    // qd_cont marks a continuity visitor: the agent (v5.7.2+) then keeps this SDK session silent instead of starting
+    // its own conversation, because the visitor's typed answers go into the live call.
+    body: JSON.stringify({ tenantId: TENANT_ID, projectId: PROJECT_ID, channelId: CHANNEL_ID, verifiedUserId, customAttributes: { qd_cont: '1' } }),
   });
   const body = await r.json().catch(() => ({}));
   if (!r.ok || typeof body.bootstrapToken !== 'string') {
