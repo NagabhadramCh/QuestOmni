@@ -36,6 +36,18 @@ function keepInline(widget) {
   return () => observer.disconnect();
 }
 
+// Web SDK 1.1.3: once joined to the live call, the widget sends typed text into the call (a "typed_interrupt" to the
+// live session) only while its own voice is active; with voice off it sends a normal chat message to the widget's own
+// SDK session, which starts a separate conversation the call never sees (sessions sdk_51ac2080 / sdk_ae324d7f).
+// On this page every typed answer belongs to the call, so while joined the send button and Enter use the live path.
+// Verified on a real call 2026-11-23 13:17 UTC: "hold on" typed here got "Of course, take your time." from the call.
+function sendTypedIntoLiveCall(widget) {
+  if (typeof widget.sendTypedInterrupt !== "function" || typeof widget.sendMessage !== "function") return;
+  widget.handleSendAction = function handleSendAction() {
+    return this.isInLiveSession ? this.sendTypedInterrupt() : this.sendMessage();
+  };
+}
+
 export default function ContinuePage({ code }) {
   const host = useRef(null);
   const { tokenUrl, apiKey, channelId } = CONTINUITY_CONFIG;
@@ -96,6 +108,7 @@ export default function ContinuePage({ code }) {
     widget.addEventListener("continuity-error", onError);
     if (typeof widget.open === "function") widget.open();
     const stopInline = keepInline(widget);
+    sendTypedIntoLiveCall(widget);
     return () => {
       stopInline();
       widget.removeEventListener("continuity-exchange", onJoined);
